@@ -1,7 +1,7 @@
 {
   "name": "rn-better-dev-tools",
   "productName": "React Native DevTools",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Enhanced developer tools for React Native applications (Only supports React Query DevTools Right Now)",
   "main": ".vite/build/main.js",
   "scripts": {
