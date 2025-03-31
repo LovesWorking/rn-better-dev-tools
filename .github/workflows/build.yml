@@ -42,9 +42,17 @@ jobs:
         run: |
           rm -rf node_modules || true
           rm -rf .pnpm-store || true
+          rm -f pnpm-lock.yaml || true
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install dependencies without lockfile
+        run: |
+          # Force full reinstall ignoring lockfile
+          echo "Force installing dependencies..."
+          pnpm install --force
+
+          # Confirm TanStack packages are installed
+          echo "Checking if TanStack packages are installed..."
+          ls -la node_modules/@tanstack || true
 
       - name: Build and package Electron app
         run: pnpm run make
