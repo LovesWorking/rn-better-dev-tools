@@ -5,6 +5,10 @@ on:
     tags:
       - "v*"
 
+# Add explicit permissions
+permissions:
+  contents: write # This is needed for creating releases
+
 jobs:
   release:
     runs-on: macos-latest
@@ -22,6 +26,14 @@ jobs:
         uses: pnpm/action-setup@v3
         with:
           version: 10
+
+      - name: Download TanStack packages
+        run: |
+          # Create a GitHub personal access token with 'repo' scope and add it as a secret in your repository
+          # Then use it to download the packages from your releases
+          curl -L -o tanstack-query-devtools-5.67.2.tgz https://raw.githubusercontent.com/lovesworking/rn-better-dev-tools/main/tanstack-query-devtools-5.67.2.tgz
+          curl -L -o tanstack-react-query-devtools-5.69.0.tgz https://raw.githubusercontent.com/lovesworking/rn-better-dev-tools/main/tanstack-react-query-devtools-5.69.0.tgz
+          ls -la *.tgz
 
       - name: Install dependencies
         run: pnpm install
