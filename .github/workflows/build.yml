@@ -49,7 +49,32 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # Temporarily remove TanStack packages from package.json using Node.js
+          echo "Creating temporary package.json without TanStack references..."
+          cp package.json package.json.original
+          node -e '
+            const fs = require("fs");
+            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            // Store original dependencies
+            const originalDeps = {...pkg.dependencies};
+            // Remove TanStack packages
+            if (pkg.dependencies) {
+              delete pkg.dependencies["@tanstack/query-devtools"];
+              delete pkg.dependencies["@tanstack/react-query-devtools"];
+            }
+            // Write modified package.json
+            fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2));
+            console.log("TanStack packages removed from package.json");
+          '
+
+          # Install dependencies without the problematic packages
+          echo "Installing dependencies..."
           pnpm install --no-frozen-lockfile --unsafe-perm=true
+
+          # Restore original package.json
+          echo "Restoring original package.json..."
+          mv package.json.original package.json
+
           echo "Basic dependencies installed"
 
       - name: Setup TanStack Packages
