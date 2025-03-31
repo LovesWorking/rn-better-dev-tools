@@ -38,34 +38,87 @@ jobs:
         with:
           version: 10
 
-      - name: Create modified package.json without TanStack references
+      - name: Analyze TanStack packages and setup
         run: |
-          # Create a temporary package.json without the TanStack dependencies
+          # Remove lockfile to avoid issues
+          rm -rf node_modules pnpm-lock.yaml .pnpm-store
+
+          # Extract the packages to examine them
+          mkdir -p temp-extract/query
+          mkdir -p temp-extract/react-query
+
+          tar -xzf fixed-tanstack-query-devtools.tgz -C temp-extract/query
+          tar -xzf fixed-tanstack-react-query-devtools.tgz -C temp-extract/react-query
+
+          # Create .npmrc to disable frozen lockfile
+          echo "frozen-lockfile=false" > .npmrc
+          echo "save-exact=true" >> .npmrc
+
+          # Examine the packages
+          echo "Examining TanStack package structure:"
+          ls -la temp-extract/query
+          ls -la temp-extract/react-query
+
+          # Check if package.json exists in extracted directories
+          if [ -f "temp-extract/query/package/package.json" ]; then
+            echo "Found package.json in query package:"
+            cat temp-extract/query/package/package.json | grep name
+          fi
+
+          if [ -f "temp-extract/react-query/package/package.json" ]; then
+            echo "Found package.json in react-query package:"
+            cat temp-extract/react-query/package/package.json | grep name
+          fi
+
+      - name: Install all dependencies
+        run: |
+          # Create temporary package.json without the TanStack references
           cat package.json | sed '/"@tanstack\/query-devtools"/d' | sed '/"@tanstack\/react-query-devtools"/d' > temp-package.json
           mv temp-package.json package.json
-          cat package.json
 
-      - name: Remove lockfile and install regular dependencies
-        run: |
-          rm -rf node_modules pnpm-lock.yaml
+          # First install all the regular dependencies
           pnpm install
 
-      - name: Manually install TanStack packages
+          # Force install the TanStack packages from their temporary locations
+          echo "Installing TanStack query-devtools..."
+          pnpm add --unsafe-perm --no-frozen-lockfile ./temp-extract/query/package || echo "Installation failed but continuing..."
+
+          echo "Installing TanStack react-query-devtools..."
+          pnpm add --unsafe-perm --no-frozen-lockfile ./temp-extract/react-query/package || echo "Installation failed but continuing..."
+
+          # List all installed packages to debug
+          echo "Installed packages:"
+          pnpm list
+
+          # Try to find where TanStack packages got installed
+          echo "Searching for TanStack packages in node_modules:"
+          find node_modules -name "*tanstack*" -type d || echo "No TanStack directories found"
+          find node_modules -name "*query*" -type d | grep -v "node_modules/.pnpm" || echo "No query directories found"
+
+      - name: Create symbolic links if needed
         run: |
-          # Create directories for extracted packages
-          mkdir -p temp-extract/query-devtools
-          mkdir -p temp-extract/react-query-devtools
+          # Create @tanstack directory if it doesn't exist
+          mkdir -p node_modules/@tanstack
 
-          # Extract the tarballs
-          tar -xzf fixed-tanstack-query-devtools.tgz -C temp-extract/query-devtools
-          tar -xzf fixed-tanstack-react-query-devtools.tgz -C temp-extract/react-query-devtools
+          # Link the query-devtools if not properly installed
+          if [ ! -d "node_modules/@tanstack/query-devtools" ]; then
+            echo "Creating symbolic link for query-devtools..."
+            if [ -d "temp-extract/query/package" ]; then
+              ln -sf "$(pwd)/temp-extract/query/package" "node_modules/@tanstack/query-devtools"
+            fi
+          fi
 
-          # Install the extracted packages
-          pnpm add --no-lockfile ./temp-extract/query-devtools/package
-          pnpm add --no-lockfile ./temp-extract/react-query-devtools/package
+          # Link the react-query-devtools if not properly installed
+          if [ ! -d "node_modules/@tanstack/react-query-devtools" ]; then
+            echo "Creating symbolic link for react-query-devtools..."
+            if [ -d "temp-extract/react-query/package" ]; then
+              ln -sf "$(pwd)/temp-extract/react-query/package" "node_modules/@tanstack/react-query-devtools"
+            fi
+          fi
 
-          # Verify installation
-          ls -la node_modules/@tanstack
+          # Verify the links
+          echo "Checking @tanstack directory:"
+          ls -la node_modules/@tanstack || echo "No @tanstack directory found"
 
       - name: Build and package Electron app
         run: pnpm run make
