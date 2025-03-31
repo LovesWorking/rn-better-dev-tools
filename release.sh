@@ -28,28 +28,28 @@ fi
 
 echo "✅ Updated version in package.json"
 
-# Make sure the TanStack packages exist
-if [ ! -f "tanstack-query-devtools-5.67.2.tgz" ] || [ ! -f "tanstack-react-query-devtools-5.69.0.tgz" ]; then
-  echo "❌ TanStack package files are missing!"
+# Make sure the fixed TanStack packages exist
+if [ ! -f "fixed-tanstack-query-devtools.tgz" ] || [ ! -f "fixed-tanstack-react-query-devtools.tgz" ]; then
+  echo "❌ Fixed TanStack package files are missing!"
   echo "   Please ensure these files are in the root directory:"
-  echo "   - tanstack-query-devtools-5.67.2.tgz"
-  echo "   - tanstack-react-query-devtools-5.69.0.tgz"
+  echo "   - fixed-tanstack-query-devtools.tgz"
+  echo "   - fixed-tanstack-react-query-devtools.tgz"
   exit 1
 fi
 
 # Add TanStack packages to git if they're not tracked
-if git ls-files --error-unmatch tanstack-query-devtools-5.67.2.tgz >/dev/null 2>&1; then
-  echo "✅ TanStack query-devtools package already tracked by git"
+if git ls-files --error-unmatch fixed-tanstack-query-devtools.tgz >/dev/null 2>&1; then
+  echo "✅ Fixed TanStack query-devtools package already tracked by git"
 else
-  echo "Adding tanstack-query-devtools-5.67.2.tgz to git..."
-  git add tanstack-query-devtools-5.67.2.tgz
+  echo "Adding fixed-tanstack-query-devtools.tgz to git..."
+  git add fixed-tanstack-query-devtools.tgz
 fi
 
-if git ls-files --error-unmatch tanstack-react-query-devtools-5.69.0.tgz >/dev/null 2>&1; then
-  echo "✅ TanStack react-query-devtools package already tracked by git"
+if git ls-files --error-unmatch fixed-tanstack-react-query-devtools.tgz >/dev/null 2>&1; then
+  echo "✅ Fixed TanStack react-query-devtools package already tracked by git"
 else
-  echo "Adding tanstack-react-query-devtools-5.69.0.tgz to git..."
-  git add tanstack-react-query-devtools-5.69.0.tgz
+  echo "Adding fixed-tanstack-react-query-devtools.tgz to git..."
+  git add fixed-tanstack-react-query-devtools.tgz
 fi
 
 # Commit the version change

@@ -16,6 +16,17 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history and tags
+
+      - name: Verify TanStack packages
+        run: |
+          if [ ! -f "fixed-tanstack-query-devtools.tgz" ] || [ ! -f "fixed-tanstack-react-query-devtools.tgz" ]; then
+            echo "❌ Fixed TanStack package files are missing! Cannot proceed."
+            exit 1
+          fi
+          echo "📦 Fixed TanStack packages found:"
+          ls -la fixed-*.tgz
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -27,19 +38,13 @@ jobs:
         with:
           version: 10
 
-      - name: Download TanStack packages
+      - name: Clean up any previous builds
         run: |
-          # Create a GitHub personal access token with 'repo' scope and add it as a secret in your repository
-          # Then use it to download the packages from your releases
-          curl -L -o tanstack-query-devtools-5.67.2.tgz https://raw.githubusercontent.com/lovesworking/rn-better-dev-tools/main/tanstack-query-devtools-5.67.2.tgz
-          curl -L -o tanstack-react-query-devtools-5.69.0.tgz https://raw.githubusercontent.com/lovesworking/rn-better-dev-tools/main/tanstack-react-query-devtools-5.69.0.tgz
-          ls -la *.tgz
-
-      - name: Clear pnpm store
-        run: pnpm store prune
+          rm -rf node_modules || true
+          rm -rf .pnpm-store || true
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install
 
       - name: Build and package Electron app
         run: pnpm run make

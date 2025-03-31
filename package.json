@@ -52,8 +52,8 @@
     "vite": "^5.0.12"
   },
   "dependencies": {
-    "@tanstack/query-devtools": "file:tanstack-query-devtools-5.67.2.tgz",
-    "@tanstack/react-query-devtools": "file:tanstack-react-query-devtools-5.69.0.tgz",
+    "@tanstack/query-devtools": "file:fixed-tanstack-query-devtools.tgz",
+    "@tanstack/react-query-devtools": "file:fixed-tanstack-react-query-devtools.tgz",
     "bufferutil": "^4.0.9",
     "electron-squirrel-startup": "^1.0.1",
     "express": "^4.21.2",
