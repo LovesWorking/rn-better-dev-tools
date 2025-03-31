@@ -14,6 +14,26 @@ const config: ForgeConfig = {
     appBundleId: "com.lovesworking.rn-dev-tools",
     appCategoryType: "public.app-category.developer-tools",
     executableName: "React Native DevTools",
+    // Add options to reduce package size
+    ignore: [
+      // Exclude these patterns from the final package
+      "/node_modules/\\.pnpm/",
+      "/\\.git($|/)",
+      "/\\.vscode($|/)",
+      "\\.map$",
+      "/\\.npmrc$",
+      "/fixed-tanstack-.+\\.tgz$",
+      "/release\\.sh$",
+      // Exclude development files
+      "^\\/src\\/(?!preload\\.ts|main\\.ts)",
+      // Exclude test files
+      "/test($|/)",
+      "/\\.(test|spec)\\.ts$",
+    ],
+    // Only include necessary node modules
+    prune: true,
+    // Remove devDependencies
+    overwrite: true,
   },
   rebuildConfig: {},
   makers: [

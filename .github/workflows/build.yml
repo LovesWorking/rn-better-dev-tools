@@ -236,16 +236,30 @@ jobs:
       - name: Build and package Electron app
         run: pnpm run make
 
+      - name: Install archiver and compress the app
+        run: |
+          # Install archiver package for better compression
+          pnpm add -D archiver
+          # Run the compression script
+          pnpm run compress
+          # Check the results
+          ls -la out/make/zip/darwin/arm64/
+          # Get file sizes for comparison
+          echo "Original app size:"
+          du -h out/make/zip/darwin/arm64/React\ Native\ DevTools-darwin-arm64-*.zip | grep -v compressed
+          echo "Compressed app size:"
+          du -h out/make/zip/darwin/arm64/React\ Native\ DevTools-darwin-arm64-*-compressed.zip
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-app
-          path: out/make/**/*.zip
+          path: out/make/zip/darwin/arm64/*-compressed.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            out/make/**/*.zip
+            out/make/zip/darwin/arm64/*-compressed.zip
           draft: true
           generate_release_notes: true
