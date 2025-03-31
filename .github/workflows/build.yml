@@ -38,6 +38,15 @@ jobs:
         with:
           version: 10
 
+      - name: Configure pnpm for Electron Forge
+        run: |
+          # Create .npmrc file with required settings for Electron Forge
+          echo "node-linker=hoisted" > .npmrc
+          echo "frozen-lockfile=false" >> .npmrc
+          echo "save-exact=true" >> .npmrc
+          echo "Content of .npmrc:"
+          cat .npmrc
+
       - name: Analyze TanStack packages and setup
         run: |
           # Remove lockfile to avoid issues
@@ -49,10 +58,6 @@ jobs:
 
           tar -xzf fixed-tanstack-query-devtools.tgz -C temp-extract/query
           tar -xzf fixed-tanstack-react-query-devtools.tgz -C temp-extract/react-query
-
-          # Create .npmrc to disable frozen lockfile
-          echo "frozen-lockfile=false" > .npmrc
-          echo "save-exact=true" >> .npmrc
 
           # Examine the packages
           echo "Examining TanStack package structure:"
