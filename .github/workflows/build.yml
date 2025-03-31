@@ -38,21 +38,34 @@ jobs:
         with:
           version: 10
 
-      - name: Clean up any previous builds
+      - name: Create modified package.json without TanStack references
         run: |
-          rm -rf node_modules || true
-          rm -rf .pnpm-store || true
-          rm -f pnpm-lock.yaml || true
+          # Create a temporary package.json without the TanStack dependencies
+          cat package.json | sed '/"@tanstack\/query-devtools"/d' | sed '/"@tanstack\/react-query-devtools"/d' > temp-package.json
+          mv temp-package.json package.json
+          cat package.json
 
-      - name: Install dependencies without lockfile
+      - name: Remove lockfile and install regular dependencies
         run: |
-          # Force full reinstall ignoring lockfile
-          echo "Force installing dependencies..."
-          pnpm install --force
+          rm -rf node_modules pnpm-lock.yaml
+          pnpm install
 
-          # Confirm TanStack packages are installed
-          echo "Checking if TanStack packages are installed..."
-          ls -la node_modules/@tanstack || true
+      - name: Manually install TanStack packages
+        run: |
+          # Create directories for extracted packages
+          mkdir -p temp-extract/query-devtools
+          mkdir -p temp-extract/react-query-devtools
+
+          # Extract the tarballs
+          tar -xzf fixed-tanstack-query-devtools.tgz -C temp-extract/query-devtools
+          tar -xzf fixed-tanstack-react-query-devtools.tgz -C temp-extract/react-query-devtools
+
+          # Install the extracted packages
+          pnpm add --no-lockfile ./temp-extract/query-devtools/package
+          pnpm add --no-lockfile ./temp-extract/react-query-devtools/package
+
+          # Verify installation
+          ls -la node_modules/@tanstack
 
       - name: Build and package Electron app
         run: pnpm run make
