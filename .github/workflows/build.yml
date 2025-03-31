@@ -35,8 +35,11 @@ jobs:
           curl -L -o tanstack-react-query-devtools-5.69.0.tgz https://raw.githubusercontent.com/lovesworking/rn-better-dev-tools/main/tanstack-react-query-devtools-5.69.0.tgz
           ls -la *.tgz
 
+      - name: Clear pnpm store
+        run: pnpm store prune
+
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build and package Electron app
         run: pnpm run make
