@@ -14,7 +14,7 @@ const config: ForgeConfig = {
     appBundleId: "com.lovesworking.rn-dev-tools",
     appCategoryType: "public.app-category.developer-tools",
     executableName: "React Native DevTools",
-    // Add options to reduce package size
+    // Add options to reduce package size but make sure to keep necessary files
     ignore: [
       // Exclude these patterns from the final package
       "/node_modules/\\.pnpm/",
@@ -24,11 +24,17 @@ const config: ForgeConfig = {
       "/\\.npmrc$",
       "/fixed-tanstack-.+\\.tgz$",
       "/release\\.sh$",
-      // Exclude development files
-      "^\\/src\\/(?!preload\\.ts|main\\.ts)",
       // Exclude test files
       "/test($|/)",
       "/\\.(test|spec)\\.ts$",
+
+      // We need a whitelist approach for source files to make sure we don't exclude important files
+      // The regex below excludes all in the src directory EXCEPT:
+      // 1. main.ts and preload.ts (required entry points)
+      // 2. components directory (contains UI components)
+      // 3. config.ts (contains configuration)
+      // This is safer than using a function which TypeScript doesn't accept here
+      "^/src/(?!main\\.ts$)(?!preload\\.ts$)(?!components/)(?!config\\.ts$)(?!.*\\.d\\.ts$).*$",
     ],
     // Only include necessary node modules
     prune: true,
