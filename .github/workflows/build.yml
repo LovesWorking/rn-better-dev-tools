@@ -12,6 +12,9 @@ permissions:
 jobs:
   release:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [x64, arm64]
 
     steps:
       - name: Check out Git repository
@@ -60,7 +63,21 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-        run: pnpm run make
+          ARCH: ${{ matrix.arch }}
+        run: pnpm run make -- --arch=${{ matrix.arch }}
+
+      - name: Rename artifacts for architecture
+        run: |
+          cd out
+          for f in **/*.zip; do
+            if [ -f "$f" ]; then
+              directory=$(dirname "$f")
+              filename=$(basename "$f")
+              extension="${filename##*.}"
+              filename="${filename%.*}"
+              mv "$f" "$directory/${filename}-${{ matrix.arch }}.${extension}"
+            fi
+          done
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
