@@ -79,11 +79,22 @@ jobs:
             fi
           done
 
+      # Delete existing release if it exists
+      - name: Delete existing release
+        uses: dev-drprasad/delete-tag-and-release@v1.0
+        with:
+          tag_name: ${{ github.ref_name }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          delete_release: true
+
+      # Create new release
       - name: Create Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             out/**/*.zip
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
