@@ -38,9 +38,9 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {},
   makers: [
-    // Only build for macOS with ZIP
-    new MakerZIP({}, ["darwin"]),
-    // The following makers are commented out as we're focusing on macOS
+    // Build a ZIP for all platforms
+    new MakerZIP({}, ["darwin", "linux", "win32"]),
+    // The following makers are commented out for now
     // new MakerSquirrel({}),
     // new MakerRpm({}),
     // new MakerDeb({})

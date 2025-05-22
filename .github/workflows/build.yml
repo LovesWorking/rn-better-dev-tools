@@ -1,3 +1,4 @@
+---
 name: Build/release
 
 on:
@@ -11,9 +12,10 @@ permissions:
 
 jobs:
   release:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
         arch: [x64, arm64]
 
     steps:
@@ -35,6 +37,7 @@ jobs:
         run: pnpm install
 
       - name: Import certificates
+        if: runner.os == 'macOS'
         env:
           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
           MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
@@ -58,29 +61,18 @@ jobs:
           # Verify certificate import
           security find-identity -v -p codesigning build.keychain
 
-      - name: Build and sign app
+      - name: Build and package app
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           ARCH: ${{ matrix.arch }}
-        run: pnpm run make -- --arch=${{ matrix.arch }}
-
-      - name: Rename artifacts for architecture
-        run: |
-          cd out
-          for f in **/*.zip; do
-            if [ -f "$f" ]; then
-              directory=$(dirname "$f")
-              filename=$(basename "$f")
-              extension="${filename##*.}"
-              filename="${filename%.*}"
-              mv "$f" "$directory/${filename}-${{ matrix.arch }}.${extension}"
-            fi
-          done
+        run: pnpm run make --arch=${{ matrix.arch }}
 
       # Delete existing release if it exists
       - name: Delete existing release
+        # but do this only once per job run
+        if: startsWith(github.ref, 'refs/tags/') && matrix.os == 'macos-latest' && matrix.arch == 'arm64'
         uses: dev-drprasad/delete-tag-and-release@v1.0
         with:
           tag_name: ${{ github.ref_name }}
