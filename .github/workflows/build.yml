@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -69,24 +69,30 @@ jobs:
           ARCH: ${{ matrix.arch }}
         run: pnpm run make --arch=${{ matrix.arch }}
 
-      # Delete existing release if it exists
-      - name: Delete existing release
-        # but do this only once per job run
-        if: startsWith(github.ref, 'refs/tags/') && matrix.os == 'macos-latest' && matrix.arch == 'arm64'
-        uses: dev-drprasad/delete-tag-and-release@v1.0
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ github.ref_name }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          delete_release: true
+          name: app-${{ matrix.os }}-${{ matrix.arch }}
+          path: "out/**/*.zip"
+          if-no-files-found: error
 
-      # Create new release
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all uploaded artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./downloaded-artifacts
+
+      - name: Create or update release
+        uses: ncipollo/release-action@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: |
-            out/**/*.zip
+          allowUpdates: true
+          replacesArtifacts: true
+          removeArtifacts: true
+          artifacts: "downloaded-artifacts/**/*.zip"
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
