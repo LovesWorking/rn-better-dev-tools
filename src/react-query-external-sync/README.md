@@ -64,6 +64,12 @@ function AppContent() {
       appVersion: "1.0.0",
       // Add any relevant platform info
     },
+    envVariables: {
+      // Optional environment variables from your app
+      NODE_ENV: process.env.NODE_ENV,
+      API_URL: process.env.API_URL,
+      // Add any relevant environment variables
+    },
     enableLogs: false,
   });
 
@@ -115,6 +121,7 @@ The `useSyncQueriesExternal` hook accepts the following options:
 | `platform`        | string      | Yes      | Platform identifier ('ios', 'android', 'web', 'macos', 'windows', etc.) |
 | `deviceId`        | string      | Yes      | Unique identifier for your device                                       |
 | `extraDeviceInfo` | object      | No       | Additional device metadata to display in DevTools                       |
+| `envVariables`    | object      | No       | Environment variables from your app to display in DevTools              |
 | `enableLogs`      | boolean     | No       | Enable console logging for debugging (default: false)                   |
 
 ## 🐛 Troubleshooting

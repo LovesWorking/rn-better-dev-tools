@@ -1,6 +1,6 @@
 # React Native DevTools
 
-Enhanced developer tools for React Native applications, currently supporting React Query DevTools with a beautiful native interface.
+Enhanced developer tools for React Native applications, supporting React Query DevTools and device storage monitoring with a beautiful native interface.
 
 ![ios pokemon](https://github.com/user-attachments/assets/25ffb38c-2e41-4aa9-a3c7-6f74383a75fc)
 
@@ -12,7 +12,9 @@ https://github.com/LovesWorking/RN-Dev-Tools-Example
 
 ## ✨ Features
 
-- 🔄 Real-time React Query state monitoring 
+- 🔄 Real-time React Query state monitoring
+- 💾 **Device storage monitoring with CRUD operations** - MMKV, AsyncStorage, and SecureStorage
+- 🌐 **Environment variables monitoring** - View and track public environment variables
 - 🎨 Beautiful native macOS interface
 - 🚀 Automatic connection to React apps
 - 📊 Query status visualization
@@ -59,6 +61,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useSyncQueriesExternal } from "react-query-external-sync";
 // Import Platform for React Native or use other platform detection for web/desktop
 import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
+import { storage } from "./mmkv"; // Your MMKV instance
 
 // Create your query client
 const queryClient = new QueryClient();
@@ -85,6 +90,21 @@ function AppContent() {
       // Add any relevant platform info
     },
     enableLogs: false,
+    envVariables: {
+      NODE_ENV: process.env.NODE_ENV,
+      // Add any private environment variables you want to monitor
+      // Public environment variables are automatically loaded
+    },
+    // Storage monitoring with CRUD operations
+    mmkvStorage: storage, // MMKV storage for ['#storage', 'mmkv', 'key'] queries + monitoring
+    asyncStorage: AsyncStorage, // AsyncStorage for ['#storage', 'async', 'key'] queries + monitoring
+    secureStorage: SecureStore, // SecureStore for ['#storage', 'secure', 'key'] queries + monitoring
+    secureStorageKeys: [
+      "userToken",
+      "refreshToken",
+      "biometricKey",
+      "deviceId",
+    ], // SecureStore keys to monitor
   });
 
   // Your app content
@@ -101,6 +121,9 @@ When testing on real devices connected to your local network, you'll need to use
 
 ```jsx
 import Constants from "expo-constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
+import { storage } from "./mmkv"; // Your MMKV instance
 
 // Get the host IP address dynamically
 const hostIP =
@@ -118,6 +141,14 @@ function AppContent() {
       appVersion: "1.0.0",
     },
     enableLogs: false,
+    envVariables: {
+      NODE_ENV: process.env.NODE_ENV,
+    },
+    // Storage monitoring
+    mmkvStorage: storage,
+    asyncStorage: AsyncStorage,
+    secureStorage: SecureStore,
+    secureStorageKeys: ["userToken", "refreshToken"],
   });
 
   return <YourApp />;
@@ -132,6 +163,9 @@ function AppContent() {
 - Monitor query states in real-time
 - View detailed query information
 - Track cache updates and invalidations
+- **Monitor device storage**: View and modify MMKV, AsyncStorage, and SecureStorage data in real-time
+- **Track environment variables**: Monitor public environment variables across your application
+- **Use storage queries**: Access storage data via React Query with keys like `['#storage', 'mmkv', 'key']`
 - The hook is automatically disabled in production builds, no configuration needed
 
 ## 📱 Platform Support
@@ -147,16 +181,76 @@ React Native DevTools works with **any React-based application**, regardless of 
 
 If your platform can run React and connect to a socket server, it will work with these DevTools!
 
+## 💾 Storage Monitoring
+
+React Native DevTools now includes powerful storage monitoring capabilities with full CRUD operations:
+
+### Supported Storage Types
+
+- **MMKV**: High-performance key-value storage
+- **AsyncStorage**: React Native's standard async storage
+- **SecureStorage**: Secure storage for sensitive data (Expo SecureStore)
+
+### Features
+
+- **Real-time monitoring**: See storage changes as they happen
+- **CRUD operations**: Create, read, update, and delete storage entries directly from DevTools
+- **React Query integration**: Access storage data via queries like `['#storage', 'mmkv', 'keyName']`
+- **Type-safe operations**: Automatic serialization/deserialization of complex data types
+- **Secure data handling**: SecureStorage keys are monitored securely
+
+### Usage Example
+
+```jsx
+// In your app, use React Query to interact with storage
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+// Read from MMKV storage
+const { data: userData } = useQuery({
+  queryKey: ["#storage", "mmkv", "user"],
+  // Data will be automatically synced with DevTools
+});
+
+// Write to AsyncStorage
+const queryClient = useQueryClient();
+const updateAsyncStorage = useMutation({
+  mutationFn: async ({ key, value }) => {
+    await AsyncStorage.setItem(key, JSON.stringify(value));
+    // Invalidate to trigger sync
+    queryClient.invalidateQueries(["#storage", "async", key]);
+  },
+});
+```
+
+## ⚙️ Configuration Options
+
+The `useSyncQueriesExternal` hook accepts the following options:
+
+| Option              | Type         | Required | Description                                                                       |
+| ------------------- | ------------ | -------- | --------------------------------------------------------------------------------- |
+| `queryClient`       | QueryClient  | Yes      | Your React Query client instance                                                  |
+| `socketURL`         | string       | Yes      | URL of the socket server (e.g., 'http://localhost:42831')                         |
+| `deviceName`        | string       | Yes      | Human-readable name for your device                                               |
+| `platform`          | string       | Yes      | Platform identifier ('ios', 'android', 'web', 'macos', 'windows', etc.)           |
+| `deviceId`          | string       | Yes      | Unique identifier for your device                                                 |
+| `extraDeviceInfo`   | object       | No       | Additional device metadata to display in DevTools                                 |
+| `enableLogs`        | boolean      | No       | Enable console logging for debugging (default: false)                             |
+| `envVariables`      | object       | No       | Private environment variables to sync with DevTools (public vars are auto-loaded) |
+| `mmkvStorage`       | MmkvStorage  | No       | MMKV storage instance for real-time monitoring                                    |
+| `asyncStorage`      | AsyncStorage | No       | AsyncStorage instance for polling-based monitoring                                |
+| `secureStorage`     | SecureStore  | No       | SecureStore instance for secure data monitoring                                   |
+| `secureStorageKeys` | string[]     | No       | Array of SecureStore keys to monitor (required if using secureStorage)            |
+
 ## 🔮 Future Plans
 
 React Native DevTools is actively being developed with exciting features on the roadmap:
 
-- 📊 **Storage Viewers**: Beautiful interfaces for viewing and modifying storage (AsyncStorage, MMKV, etc.)
+- ✅ **Storage Viewers**: Beautiful interfaces for viewing and modifying storage (AsyncStorage, MMKV, SecureStorage) - **Now Available!**
 - 🌐 **Network Request Monitoring**: Track API calls, WebSockets, and GraphQL requests
 - ❌ **Failed Request Tracking**: Easily identify and debug network failures
 - 🔄 **Remote Expo DevTools**: Trigger Expo DevTools commands remotely without using the command line
 - 🧩 **Plugin System**: Allow community extensions for specialized debugging tasks
-- drizzle-studio-plugin
+- 🗄️ **Drizzle Studio Plugin**: Integration with Drizzle ORM for database management
 
 Stay tuned for updates!
 
@@ -202,7 +296,16 @@ Having issues? Check these common solutions:
    - Set `enableLogs: true` to see connection information
 
 5. **Device ID Issues**
+
    - Make sure your `deviceId` is persistent (see below)
+
+6. **Storage Monitoring Issues**
+
+   - Ensure storage instances are properly passed to the hook
+   - For SecureStorage, make sure `secureStorageKeys` array is provided
+   - Check that storage permissions are granted on the device
+   - Verify storage libraries are properly installed and configured
+   - Use `enableLogs: true` to see storage sync information
 
 ## ⚠️ Important Note About Device IDs
 

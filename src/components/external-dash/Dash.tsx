@@ -10,6 +10,7 @@ import { DeviceSelection } from "./DeviceSelection";
 import { UserInfo } from "./UserInfo";
 import { LogConsole } from "./LogConsole";
 import { NoDevicesConnected } from "./NoDevicesConnected";
+import { StorageControlsSection } from "./UserInfo/StorageControlsSection";
 
 export const PlatformIcon: React.FC<{ platform: string }> = ({ platform }) => {
   const normalizedPlatform = platform?.toLowerCase() || "";
@@ -195,9 +196,12 @@ export const Dash: React.FC<DashProps> = ({
                   />
                 </div>
                 <span className="text-xs font-medium text-[#A1A1A6] group-hover:text-[#F5F5F7] transition-colors duration-300">
-                  Enable Logs
+                  Logs
                 </span>
               </button>
+
+              {/* Storage Controls */}
+              <StorageControlsSection />
             </div>
 
             {/* Separator */}

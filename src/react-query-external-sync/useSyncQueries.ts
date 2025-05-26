@@ -100,6 +100,7 @@ interface useSyncQueriesExternalProps {
    */
   deviceId: string;
   extraDeviceInfo?: Record<string, string>; // Additional device information as key-value pairs
+  envVariables?: Record<string, string>; // Environment variables from the mobile app
   socketURL: string;
   platform: PlatformOS; // Required platform
   /**
@@ -121,10 +122,11 @@ interface useSyncQueriesExternalProps {
 export function useSyncQueriesExternal({
   queryClient,
   deviceName,
-  socketURL,
-  extraDeviceInfo,
-  platform,
   deviceId,
+  extraDeviceInfo,
+  envVariables,
+  socketURL,
+  platform,
   enableLogs = false,
 }: useSyncQueriesExternalProps) {
   // ==========================================================
@@ -150,6 +152,7 @@ export function useSyncQueriesExternal({
     socketURL,
     persistentDeviceId: deviceId,
     extraDeviceInfo,
+    envVariables,
     platform,
     enableLogs,
   });

@@ -9,6 +9,9 @@ import type {
 import { QueryObserver } from "@tanstack/react-query";
 
 import { DehydratedState, ObserverState } from "./types";
+import { shouldFilterStorageQuery } from "../utils/storageQueryKeys";
+import { useStorageStore } from "../utils/storageStore";
+
 type TransformerFn = (data: any) => any;
 function defaultTransformerFn(data: any): any {
   return data;
@@ -35,6 +38,9 @@ export function Hydrate(
   const dehydratedMutations = dehydratedState.mutations || [];
   const dehydratedQueries = dehydratedState.queries || [];
 
+  // Get current storage preferences
+  const enabledStorageTypes = useStorageStore.getState().enabledStorageTypes;
+
   // Sync mutations
   dehydratedMutations.forEach(({ state, ...mutationOptions }) => {
     const existingMutation = mutationCache.getAll().find(
@@ -56,9 +62,16 @@ export function Hydrate(
       );
     }
   });
-  // Hydrate queries
+
+  // Hydrate queries - filter out disabled storage queries
   dehydratedQueries.forEach(
     ({ queryKey, state, queryHash, meta, promise, observers, gcTime }) => {
+      // Filter out storage queries that are disabled
+      if (shouldFilterStorageQuery(queryKey, enabledStorageTypes)) {
+        console.log(`Filtering out disabled storage query:`, queryKey);
+        return;
+      }
+
       let query = queryCache.get(queryHash);
       const data =
         state.data === undefined ? state.data : deserializeData(state.data);
