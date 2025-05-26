@@ -4,7 +4,9 @@ Enhanced developer tools for React Native applications, supporting React Query D
 
 ![ios pokemon](https://github.com/user-attachments/assets/25ffb38c-2e41-4aa9-a3c7-6f74383a75fc)
 
-https://github.com/user-attachments/assets/fce3cba3-b30a-409a-8f8f-db2bd28579be
+
+https://github.com/user-attachments/assets/5c0c5748-e031-427a-8ebf-9c085434e8ba
+
 
 ## Example app
 
