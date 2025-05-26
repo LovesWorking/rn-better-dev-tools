@@ -113,6 +113,7 @@ export default function socketHandle({ io }: Props) {
     deviceId,
     platform,
     extraDeviceInfo,
+    envVariables,
   }: User) {
     // Check if we're reconnecting an existing device by deviceId
     if (deviceId) {
@@ -146,6 +147,9 @@ export default function socketHandle({ io }: Props) {
         if (extraDeviceInfo) {
           users[existingUserIndex].extraDeviceInfo = extraDeviceInfo;
         }
+        if (envVariables) {
+          users[existingUserIndex].envVariables = envVariables;
+        }
 
         // Add isConnected status
         users[existingUserIndex].isConnected = true;
@@ -160,6 +164,9 @@ export default function socketHandle({ io }: Props) {
           if (extraDeviceInfo) {
             allDevices[existingDeviceIndex].extraDeviceInfo = extraDeviceInfo;
           }
+          if (envVariables) {
+            allDevices[existingDeviceIndex].envVariables = envVariables;
+          }
         } else if (deviceName !== "Dashboard") {
           // Add to history if not yet present and not a dashboard
           allDevices.push({
@@ -169,6 +176,7 @@ export default function socketHandle({ io }: Props) {
             platform,
             isConnected: true,
             extraDeviceInfo,
+            envVariables,
           });
         }
 
@@ -218,6 +226,7 @@ export default function socketHandle({ io }: Props) {
         platform: platform,
         isConnected: true,
         extraDeviceInfo: extraDeviceInfo,
+        envVariables: envVariables,
       };
 
       users.push(newUser);
@@ -404,19 +413,22 @@ export default function socketHandle({ io }: Props) {
   // ==========================================================
   io.on("connection", (socket: Socket) => {
     // Get the query parameters from the handshake
-    const { deviceName, deviceId, platform, extraDeviceInfo } = socket.handshake
-      .query as {
-      deviceName: string | undefined;
-      deviceId: string | undefined;
-      platform: string | undefined;
-      extraDeviceInfo: string | undefined;
-    };
+    const { deviceName, deviceId, platform, extraDeviceInfo, envVariables } =
+      socket.handshake.query as {
+        deviceName: string | undefined;
+        deviceId: string | undefined;
+        platform: string | undefined;
+        extraDeviceInfo: string | undefined;
+        envVariables: string | undefined;
+      };
     console.log(
       `${LOG_PREFIX} New connection - ID: ${socket.id}, Name: ${
         deviceName || "Unknown Device"
       }${deviceId ? `, DeviceId: ${deviceId}` : ""}${
         platform ? `, Platform: ${platform}` : ""
-      }${extraDeviceInfo ? `, ExtraDeviceInfo: ${extraDeviceInfo}` : ""}`
+      }${extraDeviceInfo ? `, ExtraDeviceInfo: ${extraDeviceInfo}` : ""}${
+        envVariables ? `, EnvVariables: ${envVariables}` : ""
+      }`
     );
 
     // ==========================================================
@@ -428,6 +440,7 @@ export default function socketHandle({ io }: Props) {
       deviceId: deviceId,
       platform: platform,
       extraDeviceInfo: extraDeviceInfo,
+      envVariables: envVariables,
     });
 
     // ==========================================================

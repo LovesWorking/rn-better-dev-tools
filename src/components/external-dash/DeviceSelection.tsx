@@ -142,7 +142,7 @@ export const DeviceSelection: React.FC<Props> = ({
   );
 
   return (
-    <div ref={ref} className="relative w-64 font-sf-pro">
+    <div ref={ref} className="relative w-48 font-sf-pro">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}

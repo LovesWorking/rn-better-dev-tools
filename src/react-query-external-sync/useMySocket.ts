@@ -9,6 +9,7 @@ interface Props {
   socketURL: string; // Base URL of the socket server (may be modified based on platform)
   persistentDeviceId: string | null; // Persistent device ID
   extraDeviceInfo?: Record<string, string>; // Additional device information as key-value pairs
+  envVariables?: Record<string, string>; // Environment variables from the mobile app
   platform: PlatformOS; // Platform identifier
   /**
    * Enable/disable logging for debugging purposes
@@ -39,6 +40,7 @@ export function useMySocket({
   socketURL,
   persistentDeviceId,
   extraDeviceInfo,
+  envVariables,
   platform,
   enableLogs = false,
 }: Props) {
@@ -110,6 +112,7 @@ export function useMySocket({
             deviceId: persistentDeviceId,
             platform,
             extraDeviceInfo: JSON.stringify(extraDeviceInfo),
+            envVariables: JSON.stringify(envVariables),
           },
           reconnection: false,
           transports: ["websocket"], // Prefer websocket transport for React Native
@@ -207,6 +210,8 @@ export function useMySocket({
             deviceName,
             deviceId: persistentDeviceId,
             platform,
+            extraDeviceInfo: JSON.stringify(extraDeviceInfo),
+            envVariables: JSON.stringify(envVariables),
           },
           reconnection: false,
           transports: ["websocket"], // Prefer websocket transport for React Native
