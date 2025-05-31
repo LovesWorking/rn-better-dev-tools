@@ -6,17 +6,13 @@ import type {
   QueryClient,
   QueryFunction,
   QueryOptions,
-} from "@tanstack/react-query";
+} from '@tanstack/react-query';
+import superjson, { type SuperJSONResult } from 'superjson';
 
-import {
-  DehydratedMutation,
-  DehydratedQuery,
-  DehydratedState,
-  ObserverState,
-} from "./types";
+import { DehydratedMutation, DehydratedQuery, ObserverState } from './types';
 type TransformerFn = (data: unknown) => unknown;
 
-export function Dehydrate(client: QueryClient): DehydratedState {
+export function Dehydrate(client: QueryClient): SuperJSONResult {
   const mutations = client
     .getMutationCache()
     .getAll()
@@ -27,7 +23,10 @@ export function Dehydrate(client: QueryClient): DehydratedState {
     .getAll()
     .flatMap((query) => [dehydrateQuery(query)]);
 
-  return { mutations, queries };
+  // serialize with superjson
+  const serializedState = superjson.serialize({ mutations, queries });
+
+  return serializedState;
 }
 export interface DehydrateOptions {
   serializeData?: TransformerFn;
@@ -49,6 +48,7 @@ function dehydrateMutation(mutation: Mutation): DehydratedMutation {
     mutationId: mutation.mutationId,
     mutationKey: mutation.options.mutationKey,
     state: mutation.state,
+    gcTime: mutation.gcTime,
     ...(mutation.options.scope && { scope: mutation.options.scope }),
     ...(mutation.meta && { meta: mutation.meta }),
   };
@@ -72,6 +72,7 @@ function dehydrateQuery(query: Query): DehydratedQuery {
     },
     queryKey: query.queryKey,
     queryHash: query.queryHash,
+    gcTime: query.gcTime,
     ...(query.meta && { meta: query.meta }),
     observers: observerStates,
   };

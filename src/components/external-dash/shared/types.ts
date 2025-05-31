@@ -10,6 +10,12 @@ import {
   MutationKey,
 } from "@tanstack/react-query";
 
+// SuperJSON result type for serialized states
+export interface SuperJSONResult {
+  json: Record<string, unknown>;
+  meta?: Record<string, unknown>;
+}
+
 // Define a simplified version of DehydratedState that both versions can work with
 export interface SimpleDehydratedState {
   mutations: unknown[];
@@ -18,7 +24,7 @@ export interface SimpleDehydratedState {
 
 export interface SyncMessage {
   type: "dehydrated-state";
-  state: DehydratedState;
+  state: SuperJSONResult;
   isOnlineManagerOnline: boolean;
   persistentDeviceId: string;
 }
