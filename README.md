@@ -12,6 +12,9 @@ https://github.com/user-attachments/assets/5c0c5748-e031-427a-8ebf-9c085434e8ba
 
 https://github.com/LovesWorking/RN-Dev-Tools-Example
 
+### If you need internal React Query dev tools within the device you can use my other package here!
+https://github.com/LovesWorking/react-native-react-query-devtools
+
 ## ✨ Features
 
 - 🔄 Real-time React Query state monitoring
