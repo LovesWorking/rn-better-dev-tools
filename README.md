@@ -4,15 +4,14 @@ Enhanced developer tools for React Native applications, supporting React Query D
 
 ![ios pokemon](https://github.com/user-attachments/assets/25ffb38c-2e41-4aa9-a3c7-6f74383a75fc)
 
-
 https://github.com/user-attachments/assets/5c0c5748-e031-427a-8ebf-9c085434e8ba
-
 
 ## Example app
 
 https://github.com/LovesWorking/RN-Dev-Tools-Example
 
 ### If you need internal React Query dev tools within the device you can use my other package here!
+
 https://github.com/LovesWorking/react-native-react-query-devtools
 
 ## ✨ Features
@@ -48,17 +47,20 @@ The easiest way to connect your React application to the DevTools is by installi
 ```bash
 # Using npm
 npm install --save-dev react-query-external-sync socket.io-client
+npm install expo-device  # For automatic device detection
 
 # Using yarn
 yarn add -D react-query-external-sync socket.io-client
+yarn add expo-device  # For automatic device detection
 
 # Using pnpm (recommended)
 pnpm add -D react-query-external-sync socket.io-client
+pnpm add expo-device  # For automatic device detection
 ```
 
 ## 🚀 Quick Start
 
-1. Launch React Native DevTools application
+1. Download and launch the React Native DevTools application
 2. Add the hook to your application where you set up your React Query context:
 
 ```jsx
@@ -68,6 +70,7 @@ import { useSyncQueriesExternal } from "react-query-external-sync";
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
+import * as ExpoDevice from "expo-device";
 import { storage } from "./mmkv"; // Your MMKV instance
 
 // Create your query client
@@ -89,6 +92,7 @@ function AppContent() {
     deviceName: Platform?.OS || "web", // Platform detection
     platform: Platform?.OS || "web", // Use appropriate platform identifier
     deviceId: Platform?.OS || "web", // Use a PERSISTENT identifier (see note below)
+    isDevice: ExpoDevice.isDevice, // Automatically detects real devices vs emulators
     extraDeviceInfo: {
       // Optional additional info about your device
       appVersion: "1.0.0",
@@ -119,6 +123,26 @@ function AppContent() {
 
 3. Start your React application
 4. DevTools will automatically detect and connect to your running application
+
+## 🔒 Production Safety
+
+The React Query External Sync package is automatically disabled in production builds.
+
+```jsx
+// The package handles this internally:
+if (process.env.NODE_ENV !== "production") {
+  useSyncQueries = require("./new-sync/useSyncQueries").useSyncQueries;
+} else {
+  // In production, this becomes a no-op function
+  useSyncQueries = () => ({
+    isConnected: false,
+    connect: () => {},
+    disconnect: () => {},
+    socket: null,
+    users: [],
+  });
+}
+```
 
 ### 📱 Using with Real Devices (Local Network)
 
@@ -231,20 +255,21 @@ const updateAsyncStorage = useMutation({
 
 The `useSyncQueriesExternal` hook accepts the following options:
 
-| Option              | Type         | Required | Description                                                                       |
-| ------------------- | ------------ | -------- | --------------------------------------------------------------------------------- |
-| `queryClient`       | QueryClient  | Yes      | Your React Query client instance                                                  |
-| `socketURL`         | string       | Yes      | URL of the socket server (e.g., 'http://localhost:42831')                         |
-| `deviceName`        | string       | Yes      | Human-readable name for your device                                               |
-| `platform`          | string       | Yes      | Platform identifier ('ios', 'android', 'web', 'macos', 'windows', etc.)           |
-| `deviceId`          | string       | Yes      | Unique identifier for your device                                                 |
-| `extraDeviceInfo`   | object       | No       | Additional device metadata to display in DevTools                                 |
-| `enableLogs`        | boolean      | No       | Enable console logging for debugging (default: false)                             |
-| `envVariables`      | object       | No       | Private environment variables to sync with DevTools (public vars are auto-loaded) |
-| `mmkvStorage`       | MmkvStorage  | No       | MMKV storage instance for real-time monitoring                                    |
-| `asyncStorage`      | AsyncStorage | No       | AsyncStorage instance for polling-based monitoring                                |
-| `secureStorage`     | SecureStore  | No       | SecureStore instance for secure data monitoring                                   |
-| `secureStorageKeys` | string[]     | No       | Array of SecureStore keys to monitor (required if using secureStorage)            |
+| Option              | Type         | Required | Description                                                                                                       |
+| ------------------- | ------------ | -------- | ----------------------------------------------------------------------------------------------------------------- |
+| `queryClient`       | QueryClient  | Yes      | Your React Query client instance                                                                                  |
+| `socketURL`         | string       | Yes      | URL of the socket server (e.g., 'http://localhost:42831')                                                         |
+| `deviceName`        | string       | Yes      | Human-readable name for your device                                                                               |
+| `platform`          | string       | Yes      | Platform identifier ('ios', 'android', 'web', 'macos', 'windows', etc.)                                           |
+| `deviceId`          | string       | Yes      | Unique identifier for your device                                                                                 |
+| `isDevice`          | boolean      | No       | Whether running on a real device (true) or emulator (false). Used for Android socket URL handling (default: true) |
+| `extraDeviceInfo`   | object       | No       | Additional device metadata to display in DevTools                                                                 |
+| `enableLogs`        | boolean      | No       | Enable console logging for debugging (default: false)                                                             |
+| `envVariables`      | object       | No       | Private environment variables to sync with DevTools (public vars are auto-loaded)                                 |
+| `mmkvStorage`       | MmkvStorage  | No       | MMKV storage instance for real-time monitoring                                                                    |
+| `asyncStorage`      | AsyncStorage | No       | AsyncStorage instance for polling-based monitoring                                                                |
+| `secureStorage`     | SecureStore  | No       | SecureStore instance for secure data monitoring                                                                   |
+| `secureStorageKeys` | string[]     | No       | Array of SecureStore keys to monitor (required if using secureStorage)                                            |
 
 ## 🔮 Future Plans
 
@@ -300,17 +325,65 @@ Having issues? Check these common solutions:
    - Confirm you're passing the correct `queryClient` instance
    - Set `enableLogs: true` to see connection information
 
-5. **Device ID Issues**
+5. **Android Real Device Connection Issues**
+
+   - If using a real Android device with React Native CLI and ADB, ensure `isDevice: true`
+   - The package transforms `localhost` to `10.0.2.2` for emulators only
+   - Use `ExpoDevice.isDevice` for automatic detection: `import * as ExpoDevice from "expo-device"`
+   - Check network connectivity between your device and development machine
+
+6. **DevTools App Issues**
 
    - Make sure your `deviceId` is persistent (see below)
+   - Verify you're using the latest version
+   - Check system requirements (macOS with Apple Silicon chip)
+   - Try reinstalling the application
+   - If using an Intel Mac and encountering issues, please report them
 
-6. **Storage Monitoring Issues**
+7. **Storage Monitoring Issues**
 
    - Ensure storage instances are properly passed to the hook
    - For SecureStorage, make sure `secureStorageKeys` array is provided
    - Check that storage permissions are granted on the device
    - Verify storage libraries are properly installed and configured
    - Use `enableLogs: true` to see storage sync information
+
+That's it! If you're still having issues, visit the [GitHub repository](https://github.com/LovesWorking/rn-better-dev-tools/issues) for support.
+
+## 🏷️ Device Type Detection
+
+The `isDevice` prop helps the DevTools distinguish between real devices and simulators/emulators. This is **crucial for Android connectivity** - the package automatically handles URL transformation for Android emulators (localhost → 10.0.2.2) but needs to know if you're running on a real device to avoid this transformation.
+
+### ⚠️ Android Connection Issue
+
+On real Android devices using React Native CLI and ADB, the automatic emulator detection can incorrectly transform `localhost` to `10.0.2.2`, breaking WebSocket connections. Setting `isDevice: true` prevents this transformation.
+
+**Recommended approaches:**
+
+```jsx
+// Best approach using Expo Device (works with bare React Native too)
+import * as ExpoDevice from "expo-device";
+
+useSyncQueriesExternal({
+  queryClient,
+  socketURL: "http://localhost:42831",
+  deviceName: Platform.OS,
+  platform: Platform.OS,
+  deviceId: Platform.OS,
+  isDevice: ExpoDevice.isDevice, // Automatically detects real devices vs emulators
+  // ... other props
+});
+
+// Alternative: Simple approach using React Native's __DEV__ flag
+isDevice: !__DEV__, // true for production/real devices, false for development/simulators
+
+// Alternative: More sophisticated detection using react-native-device-info
+import DeviceInfo from 'react-native-device-info';
+isDevice: !DeviceInfo.isEmulator(), // Automatically detects if running on emulator
+
+// Manual control for specific scenarios
+isDevice: Platform.OS === 'ios' ? !Platform.isPad : Platform.OS !== 'web',
+```
 
 ## ⚠️ Important Note About Device IDs
 
