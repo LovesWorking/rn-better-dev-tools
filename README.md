@@ -423,6 +423,9 @@ For more detailed troubleshooting, see our [Development Guide](DEVELOPMENT.md).
 ## 📄 License
 
 MIT
+---
+
+Made with ❤️ by [LovesWorking](https://github.com/LovesWorking)
 
 
 
@@ -433,7 +436,3 @@ MIT
 Enjoyed this project? Learn to use React Native to build production-ready, native mobile apps for both iOS and Android based on your existing web development skills.
 
 <img width="1800" height="520" alt="banner" src="https://github.com/user-attachments/assets/cdf63dea-464f-44fe-bed1-a517785bfd99" />
-## Contributing
----
-
-Made with ❤️ by [LovesWorking](https://github.com/LovesWorking)
